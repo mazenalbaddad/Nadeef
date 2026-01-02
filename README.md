@@ -1,3 +1,8 @@
+<img 
+  src="https://github.com/user-attachments/assets/e603c5ca-0683-4005-96d4-e5737d43d06e"
+  width="100%"
+/>
+
 # Nadeef
 
 ## To start using Nadeef:
