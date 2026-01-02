@@ -11,8 +11,14 @@ class Object {
     var name: String
     var codeBlocks: Array<CodeBlock> = []
     private var configuration: NadeefConfiguration
+    private lazy var rootMatcher = RootMatcher(roots: configuration.roots)
+
+    var allParents: [String] {
+        codeBlocks.flatMap { $0.metadata.parents }
+    }
+    
     var systemObject: Bool {
-        return configuration.roots.contains(name)
+        return rootMatcher.matches(name: name, parents: allParents)
     }
     
     init(name: String, configuration: NadeefConfiguration) {
