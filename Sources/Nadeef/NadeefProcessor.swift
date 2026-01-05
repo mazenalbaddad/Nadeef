@@ -20,7 +20,10 @@ class NadeefProcessor {
         let files = fileSearcher.startSearching(from: configuration.path)
         print("TOTAL FILES COUNT ", files.count)
         
-        let swiftFileReader = SwiftFileReader()
+        let lineInterceptors = CompositeLineInterceptor(interceptors: [EmptyLineInterceptor(),
+                                                                       SwiftSingleLineCommentInterceptor(),
+                                                                       SwiftMultiLineCommentInterceptor()])
+        let swiftFileReader = SwiftFileReader(lineInterceptor: lineInterceptors)
         let objectCollector = SwiftObjectCollector(fileReader: swiftFileReader, configuration: configuration)
         
         let referenceCounter = ReferenceCounter()
@@ -36,4 +39,3 @@ class NadeefProcessor {
         print("\(unusedObjects.count) UNUSED OBJECT")
     }
 }
-

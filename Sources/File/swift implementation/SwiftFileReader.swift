@@ -1,5 +1,5 @@
 //
-//  File 2.swift
+//  SwiftFileReader.swift
 //  
 //
 //  Created by mazen baddad on 9/3/23.
@@ -7,7 +7,13 @@
 
 import Foundation
 
-open class SwiftFileReader: FileReader {
+class SwiftFileReader: FileReader {
+    
+    private let lineInterceptor: LineInterceptor
+    
+    init(lineInterceptor: LineInterceptor) {
+        self.lineInterceptor = lineInterceptor
+    }
     
     func read(file: File) throws -> [CodeBlock] {
         guard FileManager.default.fileExists(atPath: file.path) else {
@@ -27,12 +33,12 @@ open class SwiftFileReader: FileReader {
         var bytesRead = getline(&lineByteArrayPointer, &lineCap, filePointer)
         
         while (bytesRead > 0) {
-            let line = String.init(cString:lineByteArrayPointer!)
-            if !shouldIgnore(line: line) {
-                if blockCapture == nil, let blockMetadata = codeBlockMetaData(from: line) {
+            let line = String.init(cString: lineByteArrayPointer!)
+            if let interceptedLine = lineInterceptor.intercept(line: line) {
+                if blockCapture == nil, let blockMetadata = codeBlockMetaData(from: interceptedLine) {
                     blockCapture = BlockCapture(metadata: blockMetadata)
                 }
-                blockCapture?.addLine(line)
+                blockCapture?.addLine(interceptedLine)
                 if let codeBlock = blockCapture?.capture() {
                     codeBlocks.append(codeBlock)
                     blockCapture = nil
