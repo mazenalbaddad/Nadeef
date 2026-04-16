@@ -52,11 +52,6 @@ class SwiftObjectCollector: ObjectCollector {
     }
     
     private func codeBlockMetaData(from input: String, filePath: String) -> CodeBlockMetadata? {
-        let trimmed = input.trimmingCharacters(in: .whitespaces)
-        if trimmed.hasPrefix("//") || trimmed.hasPrefix("/*") || trimmed.hasPrefix("*")
-            || trimmed.hasPrefix("#warning") || trimmed.hasPrefix("#error") {
-            return nil
-        }
         var blockMetaData: CodeBlockMetadata?
         do {
             let objectRegex = "\\b(?:class|actor|struct|extension|protocol|enum)\\s+(?!(func\\s+|var\\s+|let\\s+))([A-Za-z_][A-Za-z0-9_]*)"
