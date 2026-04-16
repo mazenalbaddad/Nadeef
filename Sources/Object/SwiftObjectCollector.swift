@@ -21,7 +21,7 @@ class SwiftObjectCollector: ObjectCollector {
         var objects: [String: Object] = [:]
         for file in files {
             let lines = try fileReader.read(file: file)
-            let codeBlocks = try collectBlocks(from: lines, fileName: file.name)
+            let codeBlocks = try collectBlocks(from: lines, file: file)
             for block in codeBlocks {
                 if objects[block.metadata.name] == nil {
                     objects[block.metadata.name] = SwiftObject(name: block.metadata.name, configuration: configuration)
@@ -32,12 +32,11 @@ class SwiftObjectCollector: ObjectCollector {
         return Array(objects.values)
     }
     
-    private func collectBlocks(from lines: [String], fileName: String) throws -> [CodeBlock] {
+    private func collectBlocks(from lines: [String], file: File) throws -> [CodeBlock] {
         var codeBlocks: [CodeBlock] = []
         var blockCapture: BlockCapture?
-        
         for line in lines {
-            if blockCapture == nil, let blockMetadata = codeBlockMetaData(from: line) {
+            if blockCapture == nil, let blockMetadata = codeBlockMetaData(from: line, filePath: file.path) {
                 blockCapture = BlockCapture(metadata: blockMetadata)
             }
             blockCapture?.addLine(line)
@@ -47,15 +46,20 @@ class SwiftObjectCollector: ObjectCollector {
             }
         }
         if blockCapture != nil {
-            throw RuntimeError("\(fileName) contains an object that connot be captured, make sure this file is compilable and there's no extra open/close curly braces")
+            throw RuntimeError("\(file.name) contains an object that connot be captured, make sure this file is compilable and there's no extra open/close curly braces")
         }
         return codeBlocks
     }
     
-    private func codeBlockMetaData(from input: String) -> CodeBlockMetadata? {
+    private func codeBlockMetaData(from input: String, filePath: String) -> CodeBlockMetadata? {
+        let trimmed = input.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("//") || trimmed.hasPrefix("/*") || trimmed.hasPrefix("*")
+            || trimmed.hasPrefix("#warning") || trimmed.hasPrefix("#error") {
+            return nil
+        }
         var blockMetaData: CodeBlockMetadata?
         do {
-            let objectRegex = "(?:class|actor|struct|extension|protocol|enum)\\s+(?!(func\\s+|var\\s+|let\\s+))([A-Za-z_][A-Za-z0-9_]*)"
+            let objectRegex = "\\b(?:class|actor|struct|extension|protocol|enum)\\s+(?!(func\\s+|var\\s+|let\\s+))([A-Za-z_][A-Za-z0-9_]*)"
             let regex = try NSRegularExpression(pattern: objectRegex, options: [])
             let nsInput = input as NSString
             regex.enumerateMatches(in: input, options: [], range: NSRange(location: 0, length: nsInput.length)) { (match, _, _) in
@@ -69,7 +73,7 @@ class SwiftObjectCollector: ObjectCollector {
                     let parentList = match.replacingOccurrences(of: ":", with: "").components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
                     blockParents = parentList
                 }
-                blockMetaData = CodeBlockMetadata(type: blockType, name: blockName, parents: blockParents)
+                blockMetaData = CodeBlockMetadata(type: blockType, name: blockName, parents: blockParents, filePath: filePath)
             }
         } catch {
             return nil

@@ -11,4 +11,5 @@ struct CodeBlockMetadata {
     var type: String
     var name: String
     var parents: Array<String> = []
+    var filePath: String
 }

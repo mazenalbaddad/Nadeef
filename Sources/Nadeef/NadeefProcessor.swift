@@ -24,10 +24,13 @@ class NadeefProcessor {
                                                                        SwiftSingleLineCommentInterceptor(),
                                                                        SwiftMultiLineCommentInterceptor()])
         let swiftFileReader = SwiftFileReader(lineInterceptor: lineInterceptors)
-        let objectCollector = SwiftObjectCollector(fileReader: swiftFileReader, configuration: configuration)
+        let swiftCollector = SwiftCollector(fileReader: swiftFileReader,
+                                            collectors: [SwiftObjectCollector(fileReader: swiftFileReader, configuration: configuration),
+                                                         SwiftPreviewCollector(fileReader: swiftFileReader)]
+        )
         
         let referenceCounter = ReferenceCounter()
-        var objectsReferences = referenceCounter.searchReferences(for: try objectCollector.collectObjects(from: files))
+        var objectsReferences = referenceCounter.searchReferences(for: try swiftCollector.collectObjects(from: files))
         print("TOTAL OBJECTS COUNT ", objectsReferences.count)
 
         let arcDeallocator = ARCDeallocator()

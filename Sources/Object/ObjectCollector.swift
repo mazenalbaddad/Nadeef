@@ -9,6 +9,5 @@ import Foundation
 
 protocol ObjectCollector {
     var fileReader: FileReader { get }
-    var configuration: NadeefConfiguration { get }
     func collectObjects(from files: Array<File>) throws -> Array<Object>
 }
