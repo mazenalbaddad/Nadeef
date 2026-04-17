@@ -10,11 +10,12 @@ import Foundation
 class Object {
     var name: String
     var codeBlocks: Array<CodeBlock> = []
+    var ancestors: [String] = []
     private var configuration: NadeefConfiguration
     private lazy var rootMatcher = RootMatcher(roots: configuration.roots)
 
     var allParents: [String] {
-        codeBlocks.flatMap { $0.metadata.parents }
+        codeBlocks.flatMap { $0.metadata.parents } + ancestors
     }
     
     var systemObject: Bool {

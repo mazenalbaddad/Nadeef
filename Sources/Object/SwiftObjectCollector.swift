@@ -29,7 +29,26 @@ class SwiftObjectCollector: ObjectCollector {
                 objects[block.metadata.name]?.add(codeBlock: block)
             }
         }
+        resolveAncestors(for: objects)
         return Array(objects.values)
+    }
+    
+    private func resolveAncestors(for objects: [String: Object]) {
+        let directParents = objects.mapValues { $0.codeBlocks.flatMap { $0.metadata.parents } }
+        for object in objects.values {
+            var visited = Set<String>()
+            var queue = object.codeBlocks.flatMap { $0.metadata.parents }
+            var ancestors: [String] = []
+            while !queue.isEmpty {
+                let current = queue.removeFirst()
+                guard visited.insert(current).inserted else { continue }
+                if let grandparents = directParents[current] {
+                    ancestors.append(contentsOf: grandparents)
+                    queue.append(contentsOf: grandparents)
+                }
+            }
+            object.ancestors = ancestors
+        }
     }
     
     private func collectBlocks(from lines: [String], file: File) throws -> [CodeBlock] {
