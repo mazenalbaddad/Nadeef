@@ -81,10 +81,11 @@ class SwiftObjectCollector: ObjectCollector {
                 let blockName = nsInput.substring(with: match.range(at: match.numberOfRanges-1))
                 var blockParents: Array<String> = []
                 
+                let cleanedInput = self.stripGenericParameters(from: input)
                 let inheritanceRegex = #":\s*([^{\n]+)"#
-                if let range = input.range(of: inheritanceRegex, options: .regularExpression) {
-                    let match = input[range]
-                    let parentList = match.replacingOccurrences(of: ":", with: "").components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                if let range = cleanedInput.range(of: inheritanceRegex, options: .regularExpression) {
+                    let match = cleanedInput[range]
+                    let parentList = match.replacingOccurrences(of: ":", with: "").components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
                     blockParents = parentList
                 }
                 blockMetaData = CodeBlockMetadata(type: blockType, name: blockName, parents: blockParents, filePath: filePath)
@@ -93,5 +94,20 @@ class SwiftObjectCollector: ObjectCollector {
             return nil
         }
         return blockMetaData
+    }
+    
+    private func stripGenericParameters(from input: String) -> String {
+        var result = ""
+        var depth = 0
+        for char in input {
+            if char == "<" {
+                depth += 1
+            } else if char == ">" && depth > 0 {
+                depth -= 1
+            } else if depth == 0 {
+                result.append(char)
+            }
+        }
+        return result
     }
 }
