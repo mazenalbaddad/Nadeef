@@ -39,7 +39,7 @@ class SystemObject: Object {
     }
     
     init() {
-        super.init(name: "System", configuration: .init(logs: false, roots: []))
+        super.init(name: "System", configuration: .init(roots: []))
     }
 }
 

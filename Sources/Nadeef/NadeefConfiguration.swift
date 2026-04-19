@@ -9,6 +9,5 @@ import Foundation
 
 struct NadeefConfiguration {
     var path: String?
-    var logs: Bool
     var roots: Array<String>
 }
