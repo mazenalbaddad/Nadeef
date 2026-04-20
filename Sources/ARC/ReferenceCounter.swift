@@ -10,7 +10,7 @@ import Foundation
 class ReferenceCounter {
     
     private let identifierRegex = try! NSRegularExpression(
-        pattern: #"\b[A-Z][a-zA-Z0-9_]*\b"#,
+        pattern: #"\b[A-Za-z_][a-zA-Z0-9_]*\b"#,
         options: []
     )
     
