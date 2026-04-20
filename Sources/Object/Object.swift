@@ -38,8 +38,8 @@ class SystemObject: Object {
         return true
     }
     
-    init() {
-        super.init(name: "System", configuration: .init(roots: []))
+    init(name: String = "System") {
+        super.init(name: name, configuration: .init(roots: []))
     }
 }
 

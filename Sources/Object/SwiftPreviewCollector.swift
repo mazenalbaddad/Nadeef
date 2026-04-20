@@ -16,7 +16,7 @@ class SwiftPreviewCollector: ObjectCollector {
     }
     
     func collectObjects(from files: Array<File>) throws -> Array<Object> {
-        let previewObject = SystemObject()
+        let previewObject = SystemObject(name: "Preview")
         for file in files {
             let lines = try fileReader.read(file: file)
             for block in collectPreviewBlocks(from: lines, filePath: file.path) {

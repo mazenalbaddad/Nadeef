@@ -26,7 +26,8 @@ class NadeefProcessor {
         let swiftFileReader = SwiftFileReader(lineInterceptor: lineInterceptors)
         let swiftCollector = SwiftCollector(fileReader: swiftFileReader,
                                             collectors: [SwiftObjectCollector(fileReader: swiftFileReader, configuration: configuration),
-                                                         SwiftPreviewCollector(fileReader: swiftFileReader)]
+                                                         SwiftPreviewCollector(fileReader: swiftFileReader),
+                                                         SwiftGlobalLineCollector(fileReader: swiftFileReader)]
         )
         
         let referenceCounter = ReferenceCounter()
