@@ -10,14 +10,16 @@ import Foundation
 class SwiftFileReader: FileReader {
     
     private let lineInterceptor: LineInterceptor
+    private let fileManager: FileManager
     
-    init(lineInterceptor: LineInterceptor) {
+    init(lineInterceptor: LineInterceptor, fileManager: FileManager = .default) {
         self.lineInterceptor = lineInterceptor
+        self.fileManager = fileManager
     }
     
     func read(file: File) throws -> [String] {
-        guard FileManager.default.fileExists(atPath: file.path) else {
-            preconditionFailure("file expected at \(file.path) is missing")
+        guard fileManager.fileExists(atPath: file.path) else {
+            throw RuntimeError("file expected at \(file.path) is missing")
         }
         guard let filePointer:UnsafeMutablePointer<FILE> = fopen(file.path, "r") else {
             preconditionFailure("Could not open file at \(file.path)")

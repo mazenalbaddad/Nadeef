@@ -13,6 +13,11 @@ class ReferenceCounter {
         pattern: #"\b[A-Za-z_][a-zA-Z0-9_]*\b"#,
         options: []
     )
+    private let logger: Logger
+    
+    init(logger: Logger = ConsoleLogger()) {
+        self.logger = logger
+    }
     
     func searchReferences(for objects: [Object]) -> [ObjectReference] {
         let nonSystemObjects = objects.filter { !$0.systemObject }
@@ -23,7 +28,7 @@ class ReferenceCounter {
         }
         
         for object in objects {
-            print("REFERENCE COUNTING \(object.name), in \(object.codeBlocks.map(\.metadata.filePath))")
+            logger.log("REFERENCE COUNTING \(object.name), in \(object.codeBlocks.map(\.metadata.filePath))")
             let referencedNames = extractReferencedNames(from: object, knownNames: objectNameSet)
             for referencedName in referencedNames where referencedName != object.name {
                 if let referencedObjectRef = objectReferenceMap[referencedName] {

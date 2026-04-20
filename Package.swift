@@ -1,4 +1,4 @@
-// swift-tools-version: 5.8
+// swift-tools-version: 5.10
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -20,5 +20,9 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ],
             path: "Sources"),
+        .testTarget(
+            name: "nadeefTests",
+            dependencies: ["nadeef"],
+            path: "Tests"),
     ]
 )
