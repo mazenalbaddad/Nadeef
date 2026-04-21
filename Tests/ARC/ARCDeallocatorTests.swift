@@ -18,7 +18,9 @@ struct ARCDeallocatorTests {
         
         let removed = ARCDeallocator(logger: SilentLogger()).removeUnused(objects: &refs)
         
-        #expect(removed == ["Orphan"])
+        #expect(removed.map(\.name) == ["Orphan"])
+        #expect(removed.first?.kind == "class")
+        #expect(removed.first?.paths == ["test.swift"])
         #expect(refs.isEmpty)
     }
     
@@ -59,7 +61,7 @@ struct ARCDeallocatorTests {
         
         let removed = ARCDeallocator(logger: SilentLogger()).removeUnused(objects: &refs)
         
-        #expect(Set(removed) == ["A", "B"])
+        #expect(Set(removed.map(\.name)) == ["A", "B"])
         #expect(refs.isEmpty)
     }
     
@@ -67,5 +69,59 @@ struct ARCDeallocatorTests {
         var refs: [ObjectReference] = []
         let removed = ARCDeallocator(logger: SilentLogger()).removeUnused(objects: &refs)
         #expect(removed.isEmpty)
+    }
+    
+    @Test func findingCarriesAllDistinctCodeBlockPaths() {
+        let object = ObjectFactory.makeSwift(
+            name: "Orphan",
+            type: "class",
+            body: ["class Orphan { }"],
+            configuration: NadeefConfiguration(roots: [])
+        )
+        object.codeBlocks[0].metadata.filePath = "Sources/Foo.swift"
+        object.add(codeBlock: CodeBlockFactory.make(
+            type: "extension",
+            name: "Orphan",
+            filePath: "Sources/Foo+Extra.swift",
+            lines: ["extension Orphan { }"]
+        ))
+        // Duplicate path should be de-duplicated, preserving first-seen order.
+        object.add(codeBlock: CodeBlockFactory.make(
+            type: "extension",
+            name: "Orphan",
+            filePath: "Sources/Foo.swift",
+            lines: ["extension Orphan { }"]
+        ))
+        var refs = [ObjectReference(object: object)]
+        
+        let removed = ARCDeallocator(logger: SilentLogger()).removeUnused(objects: &refs)
+        
+        #expect(removed == [UnusedFinding(
+            name: "Orphan",
+            kind: "class",
+            paths: ["Sources/Foo.swift", "Sources/Foo+Extra.swift"]
+        )])
+    }
+    
+    @Test func findingKindPrefersNonExtensionBlock() {
+        let object = ObjectFactory.makeSwift(
+            name: "Helper",
+            type: "extension",
+            body: ["extension Helper { }"],
+            configuration: NadeefConfiguration(roots: [])
+        )
+        object.codeBlocks[0].metadata.filePath = "Ext.swift"
+        object.add(codeBlock: CodeBlockFactory.make(
+            type: "struct",
+            name: "Helper",
+            filePath: "Def.swift",
+            lines: ["struct Helper { }"]
+        ))
+        var refs = [ObjectReference(object: object)]
+        
+        let removed = ARCDeallocator(logger: SilentLogger()).removeUnused(objects: &refs)
+        
+        #expect(removed.first?.kind == "struct")
+        #expect(removed.first?.paths == ["Ext.swift", "Def.swift"])
     }
 }

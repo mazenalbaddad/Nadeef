@@ -1,13 +1,13 @@
 //
-//  File 2.swift
-//  
+//  ARCDeallocator.swift
+//
 //
 //  Created by Mazen Baddad on 30/08/2023.
 //
 
 import Foundation
 
-class ARCDeallocator  {
+class ARCDeallocator {
     
     private let logger: Logger
     
@@ -15,24 +15,38 @@ class ARCDeallocator  {
         self.logger = logger
     }
     
-    /// Iteratively strips objects that nothing else references. Returns the
-    /// names of the removed objects in the order they were discovered.
     @discardableResult
-    func removeUnused(objects: inout [ObjectReference]) -> [String] {
-        var names: [String] = []
+    func removeUnused(objects: inout [ObjectReference]) -> [UnusedFinding] {
+        var findings: [UnusedFinding] = []
         var referenceChanged = false
-        logger.log("iteration \(objects.count)")
-        for (i, object) in objects.enumerated().reversed() {
-            if object.references.count < 1 {
-                names.append(object.object.name)
+        logger.debug("iteration \(objects.count)")
+        for (i, ref) in objects.enumerated().reversed() {
+            if ref.references.count < 1 {
+                findings.append(makeFinding(for: ref.object))
                 objects.remove(at: i)
                 referenceChanged = true
             }
         }
         objects.forEach { $0.clearReferences() }
         if referenceChanged {
-            names += removeUnused(objects: &objects)
+            findings += removeUnused(objects: &objects)
         }
-        return names
+        return findings
+    }
+    
+    private func makeFinding(for object: Object) -> UnusedFinding {
+        let primary = object.codeBlocks.first(where: { $0.metadata.type != "extension" })
+            ?? object.codeBlocks.first
+        let kind = primary?.metadata.type ?? "unknown"
+        
+        var seen = Set<String>()
+        var paths: [String] = []
+        for block in object.codeBlocks {
+            let path = block.metadata.filePath
+            if seen.insert(path).inserted {
+                paths.append(path)
+            }
+        }
+        return UnusedFinding(name: object.name, kind: kind, paths: paths)
     }
 }

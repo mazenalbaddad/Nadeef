@@ -75,7 +75,7 @@ struct NadeefProcessorTests {
         let processor = NadeefProcessor(configuration: configuration, logger: logger)
         _ = try processor.process()
         
-        #expect(logger.messages.contains(where: { $0.contains("TOTAL FILES COUNT") }))
-        #expect(logger.messages.contains(where: { $0.contains("Orphan IS UNUSED") }))
+        #expect(logger.messages.contains(where: { $0.contains("total files count") }))
+        #expect(logger.messages.contains(where: { $0.contains("Orphan is unused") }))
     }
 }

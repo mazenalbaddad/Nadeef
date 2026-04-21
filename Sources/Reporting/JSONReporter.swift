@@ -1,0 +1,66 @@
+//
+//  JSONReporter.swift
+//  nadeef
+//
+//  Created by Mazen Albaddad on 21/04/2026.
+//
+
+import Foundation
+
+struct JSONReporter: Reporter {
+    
+    func render(_ result: ProcessResult, context: ReportContext) throws -> String {
+        let payload = Payload(
+            version: "1",
+            tool: context.toolName.lowercased(),
+            toolVersion: context.toolVersion,
+            generatedAt: ISO8601DateFormatter.nadeef.string(from: context.generatedAt),
+            summary: Summary(
+                totalFiles: result.totalFiles,
+                totalObjects: result.totalObjects,
+                unusedCount: result.unused.count
+            ),
+            unused: result.unused.map { finding in
+                UnusedEntry(
+                    name: finding.name,
+                    kind: finding.kind,
+                    paths: finding.paths.map { context.relativePath(for: $0) }
+                )
+            }
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        let data = try encoder.encode(payload)
+        return (String(data: data, encoding: .utf8) ?? "{}") + "\n"
+    }
+    
+    private struct Payload: Encodable {
+        let version: String
+        let tool: String
+        let toolVersion: String
+        let generatedAt: String
+        let summary: Summary
+        let unused: [UnusedEntry]
+    }
+    
+    private struct Summary: Encodable {
+        let totalFiles: Int
+        let totalObjects: Int
+        let unusedCount: Int
+    }
+    
+    private struct UnusedEntry: Encodable {
+        let name: String
+        let kind: String
+        let paths: [String]
+    }
+}
+
+private extension ISO8601DateFormatter {
+    static let nadeef: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
+}

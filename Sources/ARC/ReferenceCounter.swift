@@ -28,7 +28,7 @@ class ReferenceCounter {
         }
         
         for object in objects {
-            logger.log("REFERENCE COUNTING \(object.name), in \(object.codeBlocks.map(\.metadata.filePath))")
+            logger.debug("REFERENCE COUNTING \(object.name), in \(object.codeBlocks.map(\.metadata.filePath))")
             let referencedNames = extractReferencedNames(from: object, knownNames: objectNameSet)
             for referencedName in referencedNames where referencedName != object.name {
                 if let referencedObjectRef = objectReferenceMap[referencedName] {

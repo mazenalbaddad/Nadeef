@@ -16,5 +16,5 @@ struct Nadeef: ParsableCommand {
         ]
     }()
     
-    static let configuration: CommandConfiguration = CommandConfiguration(abstract: "finding unused objects", version: "0.7.0", subcommands: subcommands)
+    static let configuration: CommandConfiguration = CommandConfiguration(abstract: "finding unused objects", version: "1.0.0", subcommands: subcommands)
 }

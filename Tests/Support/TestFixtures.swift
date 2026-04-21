@@ -24,13 +24,19 @@ final class FakeFileReader: FileReader {
     }
 }
 
-/// In-memory logger that records every message.
+/// In-memory logger that records every message along with its level.
 final class RecordingLogger: Logger {
     
-    private(set) var messages: [String] = []
+    struct Entry {
+        let level: LogLevel
+        let message: String
+    }
     
-    func log(_ message: String) {
-        messages.append(message)
+    private(set) var entries: [Entry] = []
+    var messages: [String] { entries.map(\.message) }
+    
+    func log(level: LogLevel, _ message: @autoclosure () -> String) {
+        entries.append(Entry(level: level, message: message()))
     }
 }
 

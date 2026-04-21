@@ -10,8 +10,10 @@ import Foundation
 struct ProcessResult {
     let totalFiles: Int
     let totalObjects: Int
-    let unusedObjectNames: [String]
+    let unused: [UnusedFinding]
     let remainingReferences: [(name: String, referencedBy: [String])]
+    
+    var unusedObjectNames: [String] { unused.map(\.name) }
 }
 
 class NadeefProcessor {
@@ -67,26 +69,26 @@ class NadeefProcessor {
     @discardableResult
     func process() throws -> ProcessResult {
         let files = fileSearcher.startSearching(from: configuration.path)
-        logger.log("TOTAL FILES COUNT \(files.count)")
+        logger.info("total files count \(files.count)")
         
         var objectsReferences = referenceCounter.searchReferences(for: try collector.collectObjects(from: files))
-        logger.log("TOTAL OBJECTS COUNT \(objectsReferences.count)")
+        logger.info("total objects count \(objectsReferences.count)")
         
-        let unusedObjects = deallocator.removeUnused(objects: &objectsReferences)
+        let unusedFindings = deallocator.removeUnused(objects: &objectsReferences)
         
         let remaining: [(name: String, referencedBy: [String])] = objectsReferences.map { ref in
             let names = ref.references.compactMap { $0.value?.name }
-            logger.log("\(ref.object.name) reference in \(names)")
+            logger.debug("\(ref.object.name) reference in \(names)")
             return (ref.object.name, names)
         }
         
-        unusedObjects.forEach { logger.log("\($0) IS UNUSED") }
-        logger.log("\(unusedObjects.count) UNUSED OBJECT")
+        unusedFindings.forEach { logger.info("\($0.name) is unused (\($0.paths.joined(separator: ", ")))") }
+        logger.info("\(unusedFindings.count) unused objects")
         
         return ProcessResult(
             totalFiles: files.count,
-            totalObjects: objectsReferences.count + unusedObjects.count,
-            unusedObjectNames: unusedObjects,
+            totalObjects: objectsReferences.count + unusedFindings.count,
+            unused: unusedFindings,
             remainingReferences: remaining
         )
     }

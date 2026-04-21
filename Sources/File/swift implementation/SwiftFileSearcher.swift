@@ -26,18 +26,18 @@ class SwiftFileSearcher: FileSearcher {
                 let filePath = path + "/" + file
                 guard !self.fileHidden(filePath: filePath) else { continue }
                 if self.fileIsDirectoryType(filePath: filePath), file != "Pods" {
-                    logger.log("searching directory \(filePath)")
+                    logger.debug("searching directory \(filePath)")
                     swiftFiles += startSearching(from: filePath)
                 } else {
                     let fileExtension: String = "swift"
                     if self.fileExtension(filePath: filePath) == fileExtension {
-                        logger.log("added \(file)")
+                        logger.debug("added \(file)")
                         swiftFiles.append(SwiftFile(name: file, path: filePath))
                     }
                 }
             }
         } catch {
-            logger.log("\(error)")
+            logger.warn("\(error)")
         }
         return swiftFiles
     }
