@@ -1,5 +1,5 @@
 import Testing
-@testable import nadeef
+@testable import Nadeef
 
 @Suite("Object / SwiftObject / SystemObject")
 struct ObjectTests {

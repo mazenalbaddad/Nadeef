@@ -1,5 +1,5 @@
 import Testing
-@testable import nadeef
+@testable import Nadeef
 
 @Suite("Ancestor resolution")
 struct AncestorResolutionTests {

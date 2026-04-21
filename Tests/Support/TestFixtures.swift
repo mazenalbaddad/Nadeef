@@ -1,5 +1,5 @@
 import Foundation
-@testable import nadeef
+@testable import Nadeef
 
 /// In-memory file reader driven by a `path -> lines` dictionary.
 final class FakeFileReader: FileReader {

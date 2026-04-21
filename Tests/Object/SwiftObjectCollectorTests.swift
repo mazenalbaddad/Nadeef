@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import nadeef
+@testable import Nadeef
 
 @Suite("SwiftObjectCollector")
 struct SwiftObjectCollectorTests {

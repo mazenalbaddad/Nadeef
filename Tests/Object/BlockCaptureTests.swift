@@ -1,5 +1,5 @@
 import Testing
-@testable import nadeef
+@testable import Nadeef
 
 @Suite("BlockCapture")
 struct BlockCaptureTests {
