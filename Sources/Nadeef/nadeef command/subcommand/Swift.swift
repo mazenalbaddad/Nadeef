@@ -11,11 +11,9 @@ extension Nadeef {
     
     struct Swift: ParsableCommand {
         
-        private static var toolVersion: String = "1.0.0"
-        
         static let configuration: CommandConfiguration = CommandConfiguration(
             abstract: "Find unused objects in Swift files.",
-            version: toolVersion
+            version: nadeefVersion
         )
         
         enum Format: String, ExpressibleByArgument, CaseIterable {
@@ -71,7 +69,7 @@ extension Nadeef {
                 let resolvedProjectRoot = projectRoot
                     ?? path
                     ?? FileManager.default.currentDirectoryPath
-                let context = ReportContext(toolVersion: Self.toolVersion, projectRoot: resolvedProjectRoot)
+                let context = ReportContext(toolVersion: Nadeef.nadeefVersion, projectRoot: resolvedProjectRoot)
                 
                 try emitStdout(result: result, context: context)
                 try emitSideOutputs(result: result, context: context)
