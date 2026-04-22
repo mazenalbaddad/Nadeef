@@ -63,3 +63,7 @@ class SwiftMultiLineCommentInterceptor: LineInterceptor {
         return result
     }
 }
+
+struct Stuff {
+    
+}
