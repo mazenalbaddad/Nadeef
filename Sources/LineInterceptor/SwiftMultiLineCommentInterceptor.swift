@@ -13,26 +13,52 @@ class SwiftMultiLineCommentInterceptor: LineInterceptor {
     
     func intercept(line: String) -> String? {
         var result = ""
-        var currentIndex = line.startIndex
+        let chars = Array(line)
+        var i = 0
+        var isInsideString = false
         
-        while currentIndex < line.endIndex {
+        while i < chars.count {
+            let char = chars[i]
+            
             if isInsideComment {
-                if let closeRange = line.range(of: "*/", range: currentIndex..<line.endIndex) {
+                if char == "*", i + 1 < chars.count, chars[i + 1] == "/" {
                     isInsideComment = false
-                    currentIndex = closeRange.upperBound
+                    i += 2
                 } else {
-                    break
+                    i += 1
                 }
-            } else {
-                if let openRange = line.range(of: "/*", range: currentIndex..<line.endIndex) {
-                    result += String(line[currentIndex..<openRange.lowerBound])
-                    isInsideComment = true
-                    currentIndex = openRange.upperBound
-                } else {
-                    result += String(line[currentIndex..<line.endIndex])
-                    break
-                }
+                continue
             }
+            
+            if isInsideString {
+                result.append(char)
+                if char == "\\", i + 1 < chars.count {
+                    result.append(chars[i + 1])
+                    i += 2
+                    continue
+                }
+                if char == "\"" {
+                    isInsideString = false
+                }
+                i += 1
+                continue
+            }
+            
+            if char == "\"" {
+                isInsideString = true
+                result.append(char)
+                i += 1
+                continue
+            }
+            
+            if char == "/", i + 1 < chars.count, chars[i + 1] == "*" {
+                isInsideComment = true
+                i += 2
+                continue
+            }
+            
+            result.append(char)
+            i += 1
         }
         return result
     }

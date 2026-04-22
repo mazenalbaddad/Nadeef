@@ -42,4 +42,41 @@ struct SwiftMultiLineCommentInterceptorTests {
         let afterClose = interceptor.intercept(line: "now normal")
         #expect(afterClose == "now normal")
     }
+    
+    @Test func openCommentInsideStringIsIgnored() {
+        let interceptor = SwiftMultiLineCommentInterceptor()
+        let line = #"let s = "/* not a comment" + x"#
+        #expect(interceptor.intercept(line: line) == line)
+    }
+    
+    @Test func closeCommentInsideStringIsIgnored() {
+        let interceptor = SwiftMultiLineCommentInterceptor()
+        let line = #"let s = "closing */ inside string""#
+        #expect(interceptor.intercept(line: line) == line)
+    }
+    
+    @Test func openAndCloseCommentInsideStringIsIgnored() {
+        let interceptor = SwiftMultiLineCommentInterceptor()
+        let line = #"let s = "/* looks like a comment */""#
+        #expect(interceptor.intercept(line: line) == line)
+    }
+    
+    @Test func realCommentAfterStringContainingCommentMarkersIsStripped() {
+        let interceptor = SwiftMultiLineCommentInterceptor()
+        let line = #"let s = "/* in string */" /* real */ tail"#
+        #expect(interceptor.intercept(line: line) == #"let s = "/* in string */"  tail"#)
+    }
+    
+    @Test func escapedQuoteDoesNotEndString() {
+        let interceptor = SwiftMultiLineCommentInterceptor()
+        let line = #"let s = "he said \"/* hi */\" loudly""#
+        #expect(interceptor.intercept(line: line) == line)
+    }
+    
+    @Test func stringDoesNotCarryStateAcrossLines() {
+        let interceptor = SwiftMultiLineCommentInterceptor()
+        _ = interceptor.intercept(line: #"let s = "unterminated "#)
+        let next = interceptor.intercept(line: "let x = /* comment */ 1")
+        #expect(next == "let x =  1")
+    }
 }
