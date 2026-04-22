@@ -71,8 +71,9 @@ extension Nadeef {
                     ?? FileManager.default.currentDirectoryPath
                 let context = ReportContext(toolVersion: Nadeef.nadeefVersion, projectRoot: resolvedProjectRoot)
                 
-                try emitStdout(result: result, context: context)
-                try emitSideOutputs(result: result, context: context)
+                for sink in sinks() {
+                    try sink.emit(result, context: context)
+                }
                 
                 if failOnFindings && !result.unused.isEmpty {
                     logger.error("\(result.unused.count) unused object(s) found; failing as requested by --fail-on-findings.")
@@ -88,33 +89,23 @@ extension Nadeef {
             }
         }
         
-        private func emitStdout(result: ProcessResult, context: ReportContext) throws {
-            let reporter: Reporter
-            switch format {
-            case .human: reporter = HumanReporter()
-            case .json:  reporter = JSONReporter()
-            case .sarif: reporter = SARIFReporter()
-            }
-            let rendered = try reporter.render(result, context: context)
-            FileHandle.standardOutput.write(Data(rendered.utf8))
-        }
-        
-        private func emitSideOutputs(result: ProcessResult, context: ReportContext) throws {
+        private func sinks() -> [ReportSink] {
+            var sinks: [ReportSink] = [StdoutSink(reporter: reporter(for: format))]
             if let path = outputJson {
-                let rendered = try JSONReporter().render(result, context: context)
-                try write(rendered, to: path)
+                sinks.append(FileSink(reporter: JSONReporter(), path: path))
             }
             if let path = outputSarif {
-                let rendered = try SARIFReporter().render(result, context: context)
-                try write(rendered, to: path)
+                sinks.append(FileSink(reporter: SARIFReporter(), path: path))
             }
+            return sinks
         }
         
-        private func write(_ contents: String, to path: String) throws {
-            let url = URL(fileURLWithPath: path)
-            let directory = url.deletingLastPathComponent()
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            try contents.write(to: url, atomically: true, encoding: .utf8)
+        private func reporter(for format: Format) -> Reporter {
+            switch format {
+            case .human: return HumanReporter()
+            case .json:  return JSONReporter()
+            case .sarif: return SARIFReporter()
+            }
         }
     }
 }
