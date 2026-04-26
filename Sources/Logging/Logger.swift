@@ -7,6 +7,10 @@
 
 import Foundation
 
+class HelloWorld {
+    
+}
+
 enum LogLevel: Int, Comparable, CustomStringConvertible {
     case debug = 0
     case info  = 1
