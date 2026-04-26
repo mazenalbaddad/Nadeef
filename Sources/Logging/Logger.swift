@@ -8,7 +8,7 @@
 import Foundation
 
 class HelloWorld {
-    
+    func hell() {}
 }
 
 enum LogLevel: Int, Comparable, CustomStringConvertible {
