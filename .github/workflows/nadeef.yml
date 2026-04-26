@@ -65,6 +65,23 @@ jobs:
           script: |
             const fs = require('fs');
             const path = 'nadeef.json';
+            let report;
+            try {
+              report = JSON.parse(fs.readFileSync(path, 'utf8'));
+            } catch (e) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `### Nadeef: unused objects found\n\nCould not read or parse \`${path}\`: ${e}`,
+              });
+              return;
+            }
+            const unused = report.unused ?? [];
+            const findingLines = unused.map((u) => {
+              const paths = (u.paths ?? []).map((p) => `\`${p}\``).join(', ');
+              return `- **${u.name}** (\`${u.kind}\`) — ${paths || '_no paths_'}`;
+            });
             let output;
             try {
               output = fs.readFileSync(path, 'utf8');
@@ -80,14 +97,14 @@ jobs:
             const body = [
               '### Nadeef: unused objects found',
               '',
-              'Full `nadeef.json` is available as a workflow artifact.',
+              'Findings (symbol → source file(s)):',
               '',
-              `Workflow run: ${runUrl}`,
+              ...findingLines,
               '',
-              'JSON excerpt from `--output-json` (may be truncated here):',
+              `Full machine-readable report: workflow artifact \`nadeef.json\` or [run logs](${runUrl}).`,
               '',
               '<details>',
-              '<summary>nadeef.json (preview)</summary>',
+              '<summary>Raw nadeef.json (preview)</summary>',
               '',
               '```json',
               trimmed,
