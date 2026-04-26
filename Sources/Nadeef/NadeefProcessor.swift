@@ -82,7 +82,10 @@ class NadeefProcessor {
             return (ref.object.name, names)
         }
         
-        unusedFindings.forEach { logger.info("\($0.name) is unused (\($0.paths.joined(separator: ", ")))") }
+        unusedFindings.forEach {
+            let paths = $0.locations.map(\.path).joined(separator: ", ")
+            logger.info("\($0.name) is unused (\(paths))")
+        }
         logger.info("\(unusedFindings.count) unused objects")
         
         return ProcessResult(

@@ -24,7 +24,12 @@ struct JSONReporter: Reporter {
                 UnusedEntry(
                     name: finding.name,
                     kind: finding.kind,
-                    paths: finding.paths.map { context.relativePath(for: $0) }
+                    locations: finding.locations.map {
+                        LocationEntry(
+                            path: context.relativePath(for: $0.path),
+                            startingLine: $0.startingLine
+                        )
+                    }
                 )
             }
         )
@@ -53,7 +58,12 @@ struct JSONReporter: Reporter {
     private struct UnusedEntry: Encodable {
         let name: String
         let kind: String
-        let paths: [String]
+        let locations: [LocationEntry]
+    }
+    
+    private struct LocationEntry: Encodable {
+        let path: String
+        let startingLine: Int
     }
 }
 

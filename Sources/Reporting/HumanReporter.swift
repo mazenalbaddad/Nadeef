@@ -24,10 +24,11 @@ struct HumanReporter: Reporter {
             lines.append("")
             lines.append("Unused objects:")
             for finding in result.unused {
-                let relative = finding.paths.map { context.relativePath(for: $0) }
                 lines.append("  - \(finding.name) (\(finding.kind))")
-                for path in relative {
-                    lines.append("      \(path)")
+                for location in finding.locations {
+                    let relative = context.relativePath(for: location.path)
+                    let suffix = location.startingLine > 0 ? ":\(location.startingLine)" : ""
+                    lines.append("      \(relative)\(suffix)")
                 }
             }
         }

@@ -79,7 +79,17 @@ jobs:
             }
             const unused = report.unused ?? [];
             const findingLines = unused.map((u) => {
-              const paths = (u.paths ?? []).map((p) => `\`${p}\``).join(', ');
+              const locs = u.locations ?? [];
+              const paths =
+                locs.length > 0
+                  ? locs
+                      .map((loc) => {
+                        const line =
+                          loc.startingLine > 0 ? `:${loc.startingLine}` : '';
+                        return `\`${loc.path}${line}\``;
+                      })
+                      .join(', ')
+                  : (u.paths ?? []).map((p) => `\`${p}\``).join(', ');
               return `- **${u.name}** (\`${u.kind}\`) — ${paths || '_no paths_'}`;
             });
             let output;

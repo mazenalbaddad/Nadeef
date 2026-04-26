@@ -40,13 +40,13 @@ class ARCDeallocator {
         let kind = primary?.metadata.type ?? "unknown"
         
         var seen = Set<String>()
-        var paths: [String] = []
+        var locations: [FindingLocation] = []
         for block in object.codeBlocks {
             let path = block.metadata.filePath
             if seen.insert(path).inserted {
-                paths.append(path)
+                locations.append(.init(path: path, startingLine: 0))
             }
         }
-        return UnusedFinding(name: object.name, kind: kind, paths: paths)
+        return UnusedFinding(name: object.name, kind: kind, locations: locations)
     }
 }

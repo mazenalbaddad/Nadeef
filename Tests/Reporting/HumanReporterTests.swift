@@ -13,7 +13,10 @@ struct HumanReporterTests {
                 UnusedFinding(
                     name: "Orphan",
                     kind: "struct",
-                    paths: ["/repo/Sources/Orphan.swift", "/repo/Sources/Orphan+Extra.swift"]
+                    locations: [
+                        FindingLocation(path: "/repo/Sources/Orphan.swift", startingLine: 0),
+                        FindingLocation(path: "/repo/Sources/Orphan+Extra.swift", startingLine: 0)
+                    ]
                 )
             ],
             remainingReferences: []
