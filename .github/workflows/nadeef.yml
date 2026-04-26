@@ -78,19 +78,35 @@ jobs:
               return;
             }
             const unused = report.unused ?? [];
+            const headSha =
+              context.payload.pull_request?.head?.sha ?? context.sha;
+            const repoBase = `${context.server_url}/${context.repo.owner}/${context.repo.repo}`;
+            const blobUrl = (relPath, startingLine) => {
+              const encoded = relPath
+                .split('/')
+                .map((p) => encodeURIComponent(p))
+                .join('/');
+              const lineHash = startingLine > 0 ? '#L' + startingLine : '';
+              return `${repoBase}/blob/${headSha}/${encoded}${lineHash}`;
+            };
             const findingLines = unused.map((u) => {
               const locs = u.locations ?? [];
-              const paths =
-                locs.length > 0
-                  ? locs
-                      .map((loc) => {
-                        const line =
-                          loc.startingLine > 0 ? `:${loc.startingLine}` : '';
-                        return `\`${loc.path}${line}\``;
-                      })
-                      .join(', ')
-                  : (u.paths ?? []).map((p) => `\`${p}\``).join(', ');
-              return `- **${u.name}** (\`${u.kind}\`) — ${paths || '_no paths_'}`;
+              if (locs.length > 0) {
+                const pathLinks = locs.map((loc) => {
+                  const label =
+                    loc.startingLine > 0
+                      ? `${loc.path}:${loc.startingLine}`
+                      : loc.path;
+                  const href = blobUrl(loc.path, loc.startingLine);
+                  return `[\`${label}\`](${href})`;
+                });
+                return `- **${u.name}** (\`${u.kind}\`) — ${pathLinks.join(', ')}`;
+              }
+              const paths = (u.paths ?? []).map((p) => {
+                const href = blobUrl(p, 0);
+                return `[\`${p}\`](${href})`;
+              });
+              return `- **${u.name}** (\`${u.kind}\`) — ${paths.join(', ') || '_no paths_'}`;
             });
             let output;
             try {
@@ -104,14 +120,24 @@ jobs:
                 ? output.slice(0, maxLen) + '\n\n… (truncated)'
                 : output;
             const runUrl = `${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
+            const headLabel = headSha.substring(0, 7);
+            const headTreeUrl = repoBase + '/tree/' + headSha;
+            const headLink =
+              '[`' + headLabel + '`](' + headTreeUrl + ')';
+            const intro =
+              'Unused symbol → file locations. Each `path:line` below links to that line in the repo. PR head: ' +
+              headLink +
+              '.';
             const body = [
               '### Nadeef: unused objects found',
               '',
-              'Findings (symbol → source file(s)):',
+              intro,
               '',
               ...findingLines,
               '',
-              `Full machine-readable report: workflow artifact \`nadeef.json\` or [run logs](${runUrl}).`,
+              '**Full report (JSON + logs):** [this workflow run](' +
+                runUrl +
+                ') — download the **`nadeef.json`** artifact on the run summary page.',
               '',
               '<details>',
               '<summary>Raw nadeef.json (preview)</summary>',
