@@ -44,7 +44,7 @@ class ARCDeallocator {
         for block in object.codeBlocks {
             let path = block.metadata.filePath
             if seen.insert(path).inserted {
-                locations.append(.init(path: path, startingLine: 0))
+                locations.append(.init(path: path, startingLine: block.metadata.startingLine))
             }
         }
         return UnusedFinding(name: object.name, kind: kind, locations: locations)

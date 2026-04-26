@@ -26,17 +26,17 @@ class SwiftPreviewCollector: ObjectCollector {
         return previewObject.codeBlocks.isEmpty ? [] : [previewObject]
     }
     
-    private func collectPreviewBlocks(from lines: [String], filePath: String) -> [CodeBlock] {
+    private func collectPreviewBlocks(from lines: [SourceLine], filePath: String) -> [CodeBlock] {
         var codeBlocks: [CodeBlock] = []
         var blockCapture: BlockCapture?
         
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        for sourceLine in lines {
+            let trimmed = sourceLine.text.trimmingCharacters(in: .whitespacesAndNewlines)
             if blockCapture == nil && trimmed.hasPrefix("#Preview") {
-                let metadata = CodeBlockMetadata(type: "#Preview", name: "Preview", filePath: filePath)
+                let metadata = CodeBlockMetadata(type: "#Preview", name: "Preview", filePath: filePath, startingLine: sourceLine.lineNumber)
                 blockCapture = BlockCapture(metadata: metadata)
             }
-            blockCapture?.addLine(line)
+            blockCapture?.addLine(sourceLine.text)
             if let codeBlock = blockCapture?.capture() {
                 codeBlocks.append(codeBlock)
                 blockCapture = nil

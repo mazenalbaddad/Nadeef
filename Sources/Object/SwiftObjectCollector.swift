@@ -51,14 +51,14 @@ class SwiftObjectCollector: ObjectCollector {
         }
     }
     
-    private func collectBlocks(from lines: [String], file: File) throws -> [CodeBlock] {
+    private func collectBlocks(from lines: [SourceLine], file: File) throws -> [CodeBlock] {
         var codeBlocks: [CodeBlock] = []
         var blockCapture: BlockCapture?
-        for line in lines {
-            if blockCapture == nil, let blockMetadata = codeBlockMetaData(from: line, filePath: file.path) {
+        for sourceLine in lines {
+            if blockCapture == nil, let blockMetadata = codeBlockMetaData(from: sourceLine.text, filePath: file.path, startingLine: sourceLine.lineNumber) {
                 blockCapture = BlockCapture(metadata: blockMetadata)
             }
-            blockCapture?.addLine(line)
+            blockCapture?.addLine(sourceLine.text)
             if let codeBlock = blockCapture?.capture() {
                 codeBlocks.append(codeBlock)
                 blockCapture = nil
@@ -70,7 +70,7 @@ class SwiftObjectCollector: ObjectCollector {
         return codeBlocks
     }
     
-    private func codeBlockMetaData(from input: String, filePath: String) -> CodeBlockMetadata? {
+    private func codeBlockMetaData(from input: String, filePath: String, startingLine: Int) -> CodeBlockMetadata? {
         var blockMetaData: CodeBlockMetadata?
         do {
             let objectRegex = "\\b(?:class|actor|struct|extension|protocol|enum)\\s+(?!(func\\s+|var\\s+|let\\s+))([A-Za-z_][A-Za-z0-9_]*)"
@@ -88,7 +88,7 @@ class SwiftObjectCollector: ObjectCollector {
                     let parentList = match.replacingOccurrences(of: ":", with: "").components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
                     blockParents = parentList
                 }
-                blockMetaData = CodeBlockMetadata(type: blockType, name: blockName, parents: blockParents, filePath: filePath)
+                blockMetaData = CodeBlockMetadata(type: blockType, name: blockName, parents: blockParents, filePath: filePath, startingLine: startingLine)
             }
         } catch {
             return nil

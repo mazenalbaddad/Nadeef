@@ -15,12 +15,12 @@ final class FakeFileReader: FileReader {
         contents[path] = lines
     }
     
-    func read(file: File) throws -> [String] {
+    func read(file: File) throws -> [SourceLine] {
         reads.append(file.path)
         guard let lines = contents[file.path] else {
             throw RuntimeError("no stub for \(file.path)")
         }
-        return lines
+        return lines.enumerated().map { SourceLine(lineNumber: $0.offset + 1, text: $0.element) }
     }
 }
 
@@ -83,9 +83,10 @@ enum CodeBlockFactory {
         name: String,
         parents: [String] = [],
         filePath: String = "test.swift",
+        startingLine: Int = 0,
         lines: [String] = []
     ) -> CodeBlock {
-        let metadata = CodeBlockMetadata(type: type, name: name, parents: parents, filePath: filePath)
+        let metadata = CodeBlockMetadata(type: type, name: name, parents: parents, filePath: filePath, startingLine: startingLine)
         let block = CodeBlock(metadata: metadata)
         for line in lines {
             block.addLine(line)

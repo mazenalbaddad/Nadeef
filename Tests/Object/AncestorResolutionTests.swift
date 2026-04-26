@@ -7,7 +7,7 @@ struct AncestorResolutionTests {
     private func makeObject(name: String, parents: [String]) -> SwiftObject {
         let config = NadeefConfiguration(roots: [":XCTestCase"])
         let object = SwiftObject(name: name, configuration: config)
-        let metadata = CodeBlockMetadata(type: "class", name: name, parents: parents, filePath: "test.swift")
+        let metadata = CodeBlockMetadata(type: "class", name: name, parents: parents, filePath: "test.swift", startingLine: 0)
         let block = CodeBlock(metadata: metadata)
         block.addLine("class \(name) { }")
         object.add(codeBlock: block)

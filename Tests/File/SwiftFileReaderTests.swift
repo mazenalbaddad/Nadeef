@@ -18,7 +18,8 @@ struct SwiftFileReaderTests {
         
         let reader = SwiftFileReader(lineInterceptor: PassthroughInterceptor())
         let lines = try reader.read(file: SwiftFile(name: "Sample.swift", path: path))
-        let stripped = lines.map { $0.trimmingCharacters(in: .newlines) }
+        let stripped = lines.map { $0.text.trimmingCharacters(in: .newlines) }
+        #expect(lines.map(\.lineNumber) == [1, 2, 3])
         #expect(stripped == ["line1", "line2", "line3"])
     }
     
@@ -36,7 +37,8 @@ struct SwiftFileReaderTests {
         let reader = SwiftFileReader(lineInterceptor: chain)
         let lines = try reader.read(file: SwiftFile(name: "Sample.swift", path: path))
         #expect(lines.count == 1)
-        #expect(lines.first?.contains("let x = 1") == true)
+        #expect(lines.first?.lineNumber == 2)
+        #expect(lines.first?.text.contains("let x = 1") == true)
     }
     
     @Test func throwsWhenFileMissing() {
