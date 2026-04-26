@@ -45,3 +45,8 @@ class SwiftFileReader: FileReader {
         return lines
     }
 }
+
+class Mazen {
+    
+    
+}

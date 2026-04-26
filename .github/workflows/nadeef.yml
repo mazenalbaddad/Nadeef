@@ -78,9 +78,15 @@ jobs:
               return;
             }
             const unused = report.unused ?? [];
-            const headSha =
-              context.payload.pull_request?.head?.sha ?? context.sha;
-            const repoBase = `${context.server_url}/${context.repo.owner}/${context.repo.repo}`;
+            // GITHUB_SERVER_URL is always set; context.server_url is not on the JS context (was undefined).
+            const serverUrl =
+              process.env.GITHUB_SERVER_URL || 'https://github.com';
+            // Use PR head only — never context.sha: on pull_request runs that is the merge commit, not the branch.
+            const headSha = context.payload.pull_request?.head?.sha;
+            if (!headSha) {
+              throw new Error('Expected pull_request.head.sha; cannot build source links without it.');
+            }
+            const repoBase = `${serverUrl}/${context.repo.owner}/${context.repo.repo}`;
             const blobUrl = (relPath, startingLine) => {
               const encoded = relPath
                 .split('/')
