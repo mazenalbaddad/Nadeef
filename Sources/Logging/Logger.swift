@@ -7,8 +7,6 @@
 
 import Foundation
 
-class Hesham {}
-
 enum LogLevel: Int, Comparable, CustomStringConvertible {
     case debug = 0
     case info  = 1
