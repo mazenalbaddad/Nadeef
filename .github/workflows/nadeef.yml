@@ -73,7 +73,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: `### Nadeef: unused objects found\n\nCould not read or parse \`${path}\`: ${e}`,
+                body: `### Nadeef: unused types\n\nCould not read or parse \`${path}\`: ${e}`,
               });
               return;
             }
@@ -95,25 +95,33 @@ jobs:
               const lineHash = startingLine > 0 ? '#L' + startingLine : '';
               return `${repoBase}/blob/${headSha}/${encoded}${lineHash}`;
             };
-            const findingLines = unused.map((u) => {
+            const escCell = (s) => String(s).replace(/\|/g, '\\|');
+            const tableRows = unused.map((u) => {
               const locs = u.locations ?? [];
+              let locationCell;
               if (locs.length > 0) {
-                const pathLinks = locs.map((loc) => {
-                  const label =
-                    loc.startingLine > 0
-                      ? `${loc.path}:${loc.startingLine}`
-                      : loc.path;
-                  const href = blobUrl(loc.path, loc.startingLine);
-                  return `[\`${label}\`](${href})`;
+                locationCell = locs
+                  .map((loc) => {
+                    const label =
+                      loc.startingLine > 0
+                        ? `${loc.path}:${loc.startingLine}`
+                        : loc.path;
+                    return `[\`${label}\`](${blobUrl(loc.path, loc.startingLine)})`;
+                  })
+                  .join(', ');
+              } else {
+                const paths = (u.paths ?? []).map((p) => {
+                  return `[\`${p}\`](${blobUrl(p, 0)})`;
                 });
-                return `- **${u.name}** (\`${u.kind}\`) — ${pathLinks.join(', ')}`;
+                locationCell = paths.join(', ') || '—';
               }
-              const paths = (u.paths ?? []).map((p) => {
-                const href = blobUrl(p, 0);
-                return `[\`${p}\`](${href})`;
-              });
-              return `- **${u.name}** (\`${u.kind}\`) — ${paths.join(', ') || '_no paths_'}`;
+              return `| ${escCell(u.name)} | \`${escCell(u.kind)}\` | ${locationCell} |`;
             });
+            const table = [
+              '| Symbol | Kind | Location |',
+              '| :-- | :-- | :-- |',
+              ...tableRows,
+            ].join('\n');
             let output;
             try {
               output = fs.readFileSync(path, 'utf8');
@@ -131,19 +139,15 @@ jobs:
             const headLink =
               '[`' + headLabel + '`](' + headTreeUrl + ')';
             const intro =
-              'Unused symbol → file locations. Each `path:line` below links to that line in the repo. PR head: ' +
-              headLink +
-              '.';
+              'Unused Swift type definitions in the scan scope. PR head: ' + headLink + '.';
             const body = [
-              '### Nadeef: unused objects found',
+              '### Nadeef: unused types',
               '',
               intro,
               '',
-              ...findingLines,
+              table,
               '',
-              '**Full report (JSON + logs):** [this workflow run](' +
-                runUrl +
-                ') — download the **`nadeef.json`** artifact on the run summary page.',
+              '**Report:** [workflow run](' + runUrl + ') — `nadeef.json` in artifacts.',
               '',
               '<details>',
               '<summary>Raw nadeef.json (preview)</summary>',
