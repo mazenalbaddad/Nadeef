@@ -15,7 +15,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build nadeef
         run: |
-          swift build -c release
           echo "NADEEF_PATH=$(swift build -c release --show-bin-path)/nadeef" >> "$GITHUB_ENV"
       - name: Run nadeef on this repo
         id: scan
@@ -64,17 +63,41 @@ jobs:
         with:
           script: |
             const fs = require('fs');
+            const marker = '<!-- nadeef-bot -->';
+            const upsertComment = async (body) => {
+              const text = body.startsWith(marker) ? body : marker + '\n' + body;
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100,
+              });
+              const marked = comments.filter((c) => c.body?.includes(marker));
+              const existing = marked.length ? marked[marked.length - 1] : undefined;
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body: text,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: text,
+                });
+              }
+            };
             const path = 'nadeef.json';
             let report;
             try {
               report = JSON.parse(fs.readFileSync(path, 'utf8'));
             } catch (e) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: `### Nadeef: unused types\n\nCould not read or parse \`${path}\`: ${e}`,
-              });
+              await upsertComment(
+                `### Nadeef: unused types\n\nCould not read or parse \`${path}\`: ${e}`,
+              );
               return;
             }
             const unused = report.unused ?? [];
@@ -158,12 +181,7 @@ jobs:
               '',
               '</details>',
             ].join('\n');
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body,
-            });
+            await upsertComment(body);
       - name: Fail if nadeef did not pass
         if: always() && steps.scan.outcome != 'skipped'
         shell: bash
