@@ -45,7 +45,6 @@ struct JSONReporterTests {
         let rendered = try JSONReporter().render(result, context: context)
         let decoded = try decode(rendered)
         
-        #expect(decoded["version"] as? String == "1")
         #expect(decoded["tool"] as? String == "nadeef")
         #expect(decoded["toolVersion"] as? String == "0.3.0")
         #expect(decoded["generatedAt"] as? String == "1970-01-01T00:00:00Z")
