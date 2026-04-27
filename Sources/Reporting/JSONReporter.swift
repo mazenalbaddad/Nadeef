@@ -11,7 +11,6 @@ struct JSONReporter: Reporter {
     
     func render(_ result: ProcessResult, context: ReportContext) throws -> String {
         let payload = Payload(
-            version: "1",
             tool: context.toolName.lowercased(),
             toolVersion: context.toolVersion,
             generatedAt: ISO8601DateFormatter.nadeef.string(from: context.generatedAt),
@@ -41,7 +40,6 @@ struct JSONReporter: Reporter {
     }
     
     private struct Payload: Encodable {
-        let version: String
         let tool: String
         let toolVersion: String
         let generatedAt: String

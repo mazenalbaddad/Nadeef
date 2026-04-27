@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build nadeef
         run: |
+          swift build -c release
           echo "NADEEF_PATH=$(swift build -c release --show-bin-path)/nadeef" >> "$GITHUB_ENV"
       - name: Run nadeef on this repo
         id: scan
