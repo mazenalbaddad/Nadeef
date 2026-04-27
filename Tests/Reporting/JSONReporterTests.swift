@@ -10,8 +10,19 @@ struct JSONReporterTests {
             totalFiles: 10,
             totalObjects: 5,
             unused: [
-                UnusedFinding(name: "Foo", kind: "class", paths: ["/repo/Sources/Foo.swift", "/repo/Sources/Foo+Extra.swift"]),
-                UnusedFinding(name: "Bar", kind: "struct", paths: ["/repo/Sources/Bar.swift"])
+                UnusedFinding(
+                    name: "Foo",
+                    kind: "class",
+                    locations: [
+                        FindingLocation(path: "/repo/Sources/Foo.swift", startingLine: 0),
+                        FindingLocation(path: "/repo/Sources/Foo+Extra.swift", startingLine: 0)
+                    ]
+                ),
+                UnusedFinding(
+                    name: "Bar",
+                    kind: "struct",
+                    locations: [FindingLocation(path: "/repo/Sources/Bar.swift", startingLine: 0)]
+                )
             ],
             remainingReferences: []
         )
@@ -34,7 +45,6 @@ struct JSONReporterTests {
         let rendered = try JSONReporter().render(result, context: context)
         let decoded = try decode(rendered)
         
-        #expect(decoded["version"] as? String == "1")
         #expect(decoded["tool"] as? String == "nadeef")
         #expect(decoded["toolVersion"] as? String == "0.3.0")
         #expect(decoded["generatedAt"] as? String == "1970-01-01T00:00:00Z")
@@ -51,7 +61,7 @@ struct JSONReporterTests {
         #expect(summary["unusedCount"] as? Int == 2)
     }
     
-    @Test func unusedEntriesUseRelativePaths() throws {
+    @Test func unusedEntriesUseRelativePathsAndLocations() throws {
         let (result, context) = sample()
         let rendered = try JSONReporter().render(result, context: context)
         let decoded = try decode(rendered)
@@ -60,12 +70,16 @@ struct JSONReporterTests {
         #expect(unused.count == 2)
         #expect(unused[0]["name"] as? String == "Foo")
         #expect(unused[0]["kind"] as? String == "class")
-        #expect(unused[0]["paths"] as? [String] == ["Sources/Foo.swift", "Sources/Foo+Extra.swift"])
+        let fooLocs = unused[0]["locations"] as? [[String: Any]] ?? []
+        #expect(fooLocs.map { $0["path"] as? String } == ["Sources/Foo.swift", "Sources/Foo+Extra.swift"])
+        #expect(fooLocs.map { $0["startingLine"] as? Int } == [0, 0])
         #expect(unused[1]["name"] as? String == "Bar")
-        #expect(unused[1]["paths"] as? [String] == ["Sources/Bar.swift"])
+        let barLocs = unused[1]["locations"] as? [[String: Any]] ?? []
+        #expect(barLocs.map { $0["path"] as? String } == ["Sources/Bar.swift"])
+        #expect(barLocs.map { $0["startingLine"] as? Int } == [0])
     }
     
-    @Test func entriesHaveNoLineField() throws {
+    @Test func entriesHaveNoTopLevelLineOrFileField() throws {
         let (result, context) = sample()
         let rendered = try JSONReporter().render(result, context: context)
         let decoded = try decode(rendered)

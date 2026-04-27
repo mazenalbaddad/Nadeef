@@ -14,10 +14,11 @@ class SwiftGlobalLineCollector: ObjectCollector {
             let lines = try fileReader.read(file: file)
             let globalLines = collectGlobalLines(from: lines)
             if !globalLines.isEmpty {
-                let metadata = CodeBlockMetadata(type: "global", name: "Global", filePath: file.path)
+                let startLine = globalLines.first?.lineNumber ?? 0
+                let metadata = CodeBlockMetadata(type: "global", name: "Global", filePath: file.path, startingLine: startLine)
                 let block = CodeBlock(metadata: metadata)
-                for line in globalLines {
-                    block.addLine(line)
+                for sourceLine in globalLines {
+                    block.addLine(sourceLine.text)
                 }
                 globalObject.add(codeBlock: block)
             }
@@ -25,13 +26,13 @@ class SwiftGlobalLineCollector: ObjectCollector {
         return globalObject.codeBlocks.isEmpty ? [] : [globalObject]
     }
 
-    private func collectGlobalLines(from lines: [String]) -> [String] {
-        var globalLines: [String] = []
+    private func collectGlobalLines(from lines: [SourceLine]) -> [SourceLine] {
+        var globalLines: [SourceLine] = []
         var depth = 0
-        for line in lines {
-            let braces = countBraces(in: line)
+        for sourceLine in lines {
+            let braces = countBraces(in: sourceLine.text)
             if depth == 0 && braces.open == 0 && braces.close == 0 {
-                globalLines.append(line)
+                globalLines.append(sourceLine)
             } else {
                 depth += braces.open - braces.close
             }

@@ -10,5 +10,10 @@ import Foundation
 struct UnusedFinding: Equatable {
     let name: String
     let kind: String
-    let paths: [String]
+    let locations: [FindingLocation]
+}
+
+struct FindingLocation: Equatable {
+    var path: String
+    var startingLine: Int
 }

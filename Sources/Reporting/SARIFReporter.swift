@@ -22,12 +22,14 @@ struct SARIFReporter: Reporter {
         )
         
         let results = result.unused.map { finding -> SARIFResult in
-            let locations = finding.paths.map { path -> Location in
-                Location(physicalLocation: PhysicalLocation(
+            let locations = finding.locations.map { loc -> Location in
+                let region = loc.startingLine > 0 ? Region(startLine: loc.startingLine) : nil
+                return Location(physicalLocation: PhysicalLocation(
                     artifactLocation: ArtifactLocation(
-                        uri: context.relativePath(for: path),
+                        uri: context.relativePath(for: loc.path),
                         uriBaseId: "SRCROOT"
-                    )
+                    ),
+                    region: region
                 ))
             }
             return SARIFResult(
@@ -126,6 +128,11 @@ struct SARIFReporter: Reporter {
     
     private struct PhysicalLocation: Encodable {
         let artifactLocation: ArtifactLocation
+        let region: Region?
+    }
+    
+    private struct Region: Encodable {
+        let startLine: Int
     }
     
     private struct ArtifactLocation: Encodable {

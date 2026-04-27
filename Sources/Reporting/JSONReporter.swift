@@ -11,7 +11,6 @@ struct JSONReporter: Reporter {
     
     func render(_ result: ProcessResult, context: ReportContext) throws -> String {
         let payload = Payload(
-            version: "1",
             tool: context.toolName.lowercased(),
             toolVersion: context.toolVersion,
             generatedAt: ISO8601DateFormatter.nadeef.string(from: context.generatedAt),
@@ -24,7 +23,12 @@ struct JSONReporter: Reporter {
                 UnusedEntry(
                     name: finding.name,
                     kind: finding.kind,
-                    paths: finding.paths.map { context.relativePath(for: $0) }
+                    locations: finding.locations.map {
+                        LocationEntry(
+                            path: context.relativePath(for: $0.path),
+                            startingLine: $0.startingLine
+                        )
+                    }
                 )
             }
         )
@@ -36,7 +40,6 @@ struct JSONReporter: Reporter {
     }
     
     private struct Payload: Encodable {
-        let version: String
         let tool: String
         let toolVersion: String
         let generatedAt: String
@@ -53,7 +56,12 @@ struct JSONReporter: Reporter {
     private struct UnusedEntry: Encodable {
         let name: String
         let kind: String
-        let paths: [String]
+        let locations: [LocationEntry]
+    }
+    
+    private struct LocationEntry: Encodable {
+        let path: String
+        let startingLine: Int
     }
 }
 

@@ -5,7 +5,7 @@ import Testing
 struct BlockCaptureTests {
     
     private func makeCapture(name: String = "X") -> BlockCapture {
-        let metadata = CodeBlockMetadata(type: "class", name: name, parents: [], filePath: "test.swift")
+        let metadata = CodeBlockMetadata(type: "class", name: name, parents: [], filePath: "test.swift", startingLine: 0)
         return BlockCapture(metadata: metadata)
     }
     

@@ -10,7 +10,11 @@ struct SARIFReporterTests {
             totalFiles: 2,
             totalObjects: 2,
             unused: [
-                UnusedFinding(name: "Orphan", kind: "class", paths: paths)
+                UnusedFinding(
+                    name: "Orphan",
+                    kind: "class",
+                    locations: paths.map { FindingLocation(path: $0, startingLine: 0) }
+                )
             ],
             remainingReferences: []
         )

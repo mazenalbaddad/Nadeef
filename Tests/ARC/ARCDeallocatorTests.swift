@@ -20,7 +20,7 @@ struct ARCDeallocatorTests {
         
         #expect(removed.map(\.name) == ["Orphan"])
         #expect(removed.first?.kind == "class")
-        #expect(removed.first?.paths == ["test.swift"])
+        #expect(removed.first?.locations == [FindingLocation(path: "test.swift", startingLine: 0)])
         #expect(refs.isEmpty)
     }
     
@@ -99,7 +99,10 @@ struct ARCDeallocatorTests {
         #expect(removed == [UnusedFinding(
             name: "Orphan",
             kind: "class",
-            paths: ["Sources/Foo.swift", "Sources/Foo+Extra.swift"]
+            locations: [
+                FindingLocation(path: "Sources/Foo.swift", startingLine: 0),
+                FindingLocation(path: "Sources/Foo+Extra.swift", startingLine: 0)
+            ]
         )])
     }
     
@@ -122,6 +125,9 @@ struct ARCDeallocatorTests {
         let removed = ARCDeallocator(logger: SilentLogger()).removeUnused(objects: &refs)
         
         #expect(removed.first?.kind == "struct")
-        #expect(removed.first?.paths == ["Ext.swift", "Def.swift"])
+        #expect(removed.first?.locations == [
+            FindingLocation(path: "Ext.swift", startingLine: 0),
+            FindingLocation(path: "Def.swift", startingLine: 0)
+        ])
     }
 }

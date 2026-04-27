@@ -17,14 +17,14 @@ class SwiftFileReader: FileReader {
         self.fileManager = fileManager
     }
     
-    func read(file: File) throws -> [String] {
+    func read(file: File) throws -> [SourceLine] {
         guard fileManager.fileExists(atPath: file.path) else {
             throw RuntimeError("file expected at \(file.path) is missing")
         }
         guard let filePointer: UnsafeMutablePointer<FILE> = fopen(file.path, "r") else {
             preconditionFailure("Could not open file at \(file.path)")
         }
-        var lines: [String] = []
+        var lines: [SourceLine] = []
         var lineByteArrayPointer: UnsafeMutablePointer<CChar>? = nil
         defer {
             fclose(filePointer)
@@ -32,11 +32,13 @@ class SwiftFileReader: FileReader {
         }
         var lineCap: Int = 0
         var bytesRead = getline(&lineByteArrayPointer, &lineCap, filePointer)
+        var physicalLine = 0
         
         while bytesRead > 0 {
+            physicalLine += 1
             let line = String(cString: lineByteArrayPointer!)
             if let interceptedLine = lineInterceptor.intercept(line: line) {
-                lines.append(interceptedLine)
+                lines.append(SourceLine(lineNumber: physicalLine, text: interceptedLine))
             }
             bytesRead = getline(&lineByteArrayPointer, &lineCap, filePointer)
         }

@@ -12,4 +12,5 @@ struct CodeBlockMetadata {
     var name: String
     var parents: Array<String> = []
     var filePath: String
+    var startingLine: Int
 }
