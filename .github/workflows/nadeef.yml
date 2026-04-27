@@ -17,7 +17,7 @@ jobs:
         run: |
           swift build -c release
           echo "NADEEF_PATH=$(swift build -c release --show-bin-path)/nadeef" >> "$GITHUB_ENV"
-      - name: Run nadeef on this repo
+      - name: Run nadeef
         id: scan
         shell: bash
         continue-on-error: true
@@ -40,7 +40,7 @@ jobs:
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
           fi
-      - name: Detect findings from report
+      - name: Detect findings
         id: report
         if: always() && steps.json.outputs.present == 'true'
         shell: bash
@@ -58,7 +58,7 @@ jobs:
         with:
           name: nadeef.json
           path: nadeef.json
-      - name: Comment PR on findings
+      - name: Comment findings
         if: steps.report.outputs.has_findings == 'true'
         uses: actions/github-script@v7
         with:
@@ -97,7 +97,7 @@ jobs:
               report = JSON.parse(fs.readFileSync(path, 'utf8'));
             } catch (e) {
               await upsertComment(
-                `### Nadeef: unused types\n\nCould not read or parse \`${path}\`: ${e}`,
+                `### Possible unused findings\n\nCould not read or parse \`${path}\`: ${e}`,
               );
               return;
             }
@@ -132,12 +132,12 @@ jobs:
                         : loc.path;
                     return `[\`${label}\`](${blobUrl(loc.path, loc.startingLine)})`;
                   })
-                  .join(', ');
+                  .join('<br>');
               } else {
                 const paths = (u.paths ?? []).map((p) => {
                   return `[\`${p}\`](${blobUrl(p, 0)})`;
                 });
-                locationCell = paths.join(', ') || '—';
+                locationCell = paths.join('<br>') || '—';
               }
               return `| ${escCell(u.name)} | \`${escCell(u.kind)}\` | ${locationCell} |`;
             });
@@ -165,7 +165,7 @@ jobs:
             const intro =
               'Unused Swift type definitions in the scan scope. PR head: ' + headLink + '.';
             const body = [
-              '### Nadeef: unused types',
+              '### Possible unused findings',
               '',
               intro,
               '',
