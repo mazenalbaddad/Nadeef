@@ -10,8 +10,3 @@ import Foundation
 protocol FileReader {
     func read(file: File) throws -> [SourceLine]
 }
-
-extension Mazen {
-    
-    
-}
