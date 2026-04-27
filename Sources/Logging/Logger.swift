@@ -70,3 +70,7 @@ struct ConsoleLogger: Logger {
 struct SilentLogger: Logger {
     func log(level: LogLevel, _ message: @autoclosure () -> String) {}
 }
+
+struct HelloWorld {
+    
+}
