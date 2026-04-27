@@ -158,16 +158,8 @@ jobs:
                 ? output.slice(0, maxLen) + '\n\n… (truncated)'
                 : output;
             const runUrl = `${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
-            const headLabel = headSha.substring(0, 7);
-            const headTreeUrl = repoBase + '/tree/' + headSha;
-            const headLink =
-              '[`' + headLabel + '`](' + headTreeUrl + ')';
-            const intro =
-              'Unused Swift type definitions in the scan scope. PR head: ' + headLink + '.';
             const body = [
-              '### Possible unused findings',
-              '',
-              intro,
+              '## Possible unused findings',
               '',
               table,
               '',
