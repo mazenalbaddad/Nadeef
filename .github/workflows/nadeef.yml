@@ -10,9 +10,14 @@ permissions:
 
 jobs:
   nadeef:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "5.10"
+
       - name: Build nadeef
         run: |
           swift build -c release

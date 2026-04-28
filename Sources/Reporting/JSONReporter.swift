@@ -34,7 +34,7 @@ struct JSONReporter: Reporter {
         )
         
         let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(payload)
         return (String(data: data, encoding: .utf8) ?? "{}") + "\n"
     }
