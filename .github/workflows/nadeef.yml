@@ -21,7 +21,7 @@ jobs:
       - name: Build nadeef
         run: |
           swift build -c release
-          echo "NADEEF_PATH=$(swift build -c release --show-bin-path)/nadeef" >> "$GITHUB_ENV"
+          echo "NADEEF_PATH=$(swift build -c release --show-bin-path)/Nadeef" >> "$GITHUB_ENV"
       - name: Run nadeef
         id: scan
         shell: bash
