@@ -21,11 +21,11 @@ extension FileSearcher {
     
     func fileHidden(filePath path: String) -> Bool {
         let fileAttributes = self.fileAttributes(filePath: path)
-        let extensionHidden = fileAttributes[ .extensionHidden] as? Bool ?? true
+        let extensionHidden = fileAttributes[.extensionHidden] as? Bool ?? false
         return extensionHidden || fileHasDotPrefix(filePath: path)
     }
     
-    private func fileHasDotPrefix(filePath path: String) -> Bool{
+    private func fileHasDotPrefix(filePath path: String) -> Bool {
         let url = URL(fileURLWithPath: path)
         return url.lastPathComponent.hasPrefix(".")
     }

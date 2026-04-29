@@ -13,7 +13,7 @@ struct JSONReporter: Reporter {
         let payload = Payload(
             tool: context.toolName.lowercased(),
             toolVersion: context.toolVersion,
-            generatedAt: ISO8601DateFormatter.nadeef.string(from: context.generatedAt),
+            generatedAt: Self.iso8601InternetDateTime(from: context.generatedAt),
             summary: Summary(
                 totalFiles: result.totalFiles,
                 totalObjects: result.totalObjects,
@@ -34,7 +34,7 @@ struct JSONReporter: Reporter {
         )
         
         let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(payload)
         return (String(data: data, encoding: .utf8) ?? "{}") + "\n"
     }
@@ -63,12 +63,10 @@ struct JSONReporter: Reporter {
         let path: String
         let startingLine: Int
     }
-}
 
-private extension ISO8601DateFormatter {
-    static let nadeef: ISO8601DateFormatter = {
+    private static func iso8601InternetDateTime(from date: Date) -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
-        return formatter
-    }()
+        return formatter.string(from: date)
+    }
 }
