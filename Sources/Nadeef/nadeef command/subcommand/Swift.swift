@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ArgumentParser
+@preconcurrency import ArgumentParser
 
 extension Nadeef {
     

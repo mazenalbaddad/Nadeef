@@ -6,17 +6,15 @@
 //
 
 import Foundation
-import ArgumentParser
+@preconcurrency import ArgumentParser
 
 struct Nadeef: ParsableCommand {
+
+    static let nadeefVersion = "1.0.1"
     
-    static var nadeefVersion: String = "1.0.0"
-    
-    private static let subcommands: Array<ParsableCommand.Type> = {
-        return [
-            Swift.self
-        ]
-    }()
-    
-    static let configuration: CommandConfiguration = CommandConfiguration(abstract: "finding unused objects", version: nadeefVersion, subcommands: subcommands)
+    static let configuration: CommandConfiguration = CommandConfiguration(
+        abstract: "finding unused objects",
+        version: nadeefVersion,
+        subcommands: [Swift.self]
+    )
 }
