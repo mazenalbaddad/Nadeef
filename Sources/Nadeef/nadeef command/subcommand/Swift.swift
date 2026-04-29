@@ -38,7 +38,7 @@ extension Nadeef {
         var roots: [String] = []
         
         @Option(name: .long, help: "Output format for stdout: human | json | sarif. Default: human.")
-        var format: Format = .human
+        var format: Format = .json
         
         @Option(name: .long, help: "Also write a JSON report to this path.")
         var outputJson: String?
