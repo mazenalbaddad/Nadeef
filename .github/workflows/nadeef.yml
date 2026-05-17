@@ -18,6 +18,8 @@ jobs:
         with:
           path: .build
           key: ${{ runner.os }}-spm-${{ hashFiles('Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
 
       - uses: swift-actions/setup-swift@v2
         with:
@@ -26,7 +28,7 @@ jobs:
       - name: Build nadeef
         run: |
           swift build -c release
-          echo "NADEEF_PATH=$(swift build -c release --show-bin-path)/Nadeef" >> "$GITHUB_ENV"
+          echo "NADEEF_PATH=${GITHUB_WORKSPACE}/.build/release/Nadeef" >> "$GITHUB_ENV"
       - name: Run nadeef
         id: scan
         shell: bash
@@ -185,7 +187,7 @@ jobs:
               '</details>',
             ].join('\n');
             await upsertComment(body);
-      - name: Remove nadeef comment when clean
+      - name: Delete Nadeef comment if clean
         if: steps.report.outputs.has_findings == 'false' && steps.scan.outcome == 'success'
         uses: actions/github-script@v7
         with:
