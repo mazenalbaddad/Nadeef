@@ -10,7 +10,7 @@ import Foundation
 
 struct Nadeef: ParsableCommand {
 
-    static let nadeefVersion = "1.1.0"
+    static let nadeefVersion = "1.11.0"
     
     static let configuration: CommandConfiguration = CommandConfiguration(
         abstract: "finding unused objects",
