@@ -45,7 +45,30 @@ class SystemObject: Object {
 
 class SwiftObject: Object {
     
+    private static let swiftTestingAttributeRegex = try! NSRegularExpression(pattern: #"^\s*@(Test|Suite)\b"#)
+    /// Caches `isSwiftTestingSuite`, since `systemObject` is read on every ARC pass; cleared when a code block is added.
+    private var cachedIsSwiftTestingSuite: Bool?
+    
     override var systemObject: Bool {
-        return super.systemObject || codeBlocks.filter({ $0.metadata.type != "extension"}).isEmpty
+        return super.systemObject || codeBlocks.filter({ $0.metadata.type != "extension"}).isEmpty || isSwiftTestingSuite
+    }
+    
+    override func add(codeBlock: CodeBlock) {
+        super.add(codeBlock: codeBlock)
+        cachedIsSwiftTestingSuite = nil
+    }
+    
+    /// Swift Testing discovers `@Suite`/`@Test` types through macros, so nothing references them in source.
+    private var isSwiftTestingSuite: Bool {
+        if let cached = cachedIsSwiftTestingSuite {
+            return cached
+        }
+        let result = codeBlocks.contains { block in
+            block.lines.contains { line in
+                Self.swiftTestingAttributeRegex.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)) != nil
+            }
+        }
+        cachedIsSwiftTestingSuite = result
+        return result
     }
 }
