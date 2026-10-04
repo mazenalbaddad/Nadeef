@@ -44,6 +44,49 @@ struct ObjectTests {
         #expect(object.systemObject)
     }
     
+    @Test func swiftObjectIsSystemWhenExtensionContainsSwiftTestingTests() {
+        let object = SwiftObject(name: "RequestBodySpilling", configuration: makeConfig())
+        object.add(codeBlock: CodeBlockFactory.make(type: "struct", name: "RequestBodySpilling", lines: ["struct RequestBodySpilling {}"]))
+        object.add(codeBlock: CodeBlockFactory.make(type: "extension", name: "RequestBodySpilling", lines: [
+            "extension RequestBodySpilling {",
+            "    @Suite(\"Request body drain\")",
+            "    struct RequestBodyDrainTests {",
+            "        @Test(\"forwards body\")",
+            "        func forwardsBody() {}",
+            "    }",
+            "}",
+        ]))
+        #expect(object.systemObject)
+    }
+    
+    @Test func swiftObjectIsSystemWhenDeclaredWithSuiteAttribute() {
+        let object = SwiftObject(name: "Spilling", configuration: makeConfig())
+        object.add(codeBlock: CodeBlockFactory.make(type: "struct", name: "Spilling", lines: ["@Suite struct Spilling {}"]))
+        #expect(object.systemObject)
+    }
+    
+    @Test func swiftObjectIsNotSystemForSimilarAttributeNames() {
+        let object = SwiftObject(name: "MyType", configuration: makeConfig())
+        object.add(codeBlock: CodeBlockFactory.make(type: "struct", name: "MyType", lines: [
+            "struct MyType {",
+            "    @TestDouble var value: Int",
+            "}",
+        ]))
+        #expect(!object.systemObject)
+    }
+
+    @Test func swiftTestingCheckRefreshesAfterAddingCodeBlock() {
+        let object = SwiftObject(name: "Late", configuration: makeConfig())
+        object.add(codeBlock: CodeBlockFactory.make(type: "struct", name: "Late", lines: ["struct Late {}"]))
+        #expect(!object.systemObject)
+        object.add(codeBlock: CodeBlockFactory.make(type: "extension", name: "Late", lines: [
+            "extension Late {",
+            "    @Test func runs() {}",
+            "}",
+        ]))
+        #expect(object.systemObject)
+    }
+
     @Test func systemObjectAlwaysReportsSystem() {
         let object = SystemObject(name: "AnyName")
         #expect(object.systemObject)

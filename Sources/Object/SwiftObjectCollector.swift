@@ -9,6 +9,8 @@ import Foundation
 
 class SwiftObjectCollector: ObjectCollector {
     
+    static let typeDeclarationPattern = "\\b(?:class|actor|struct|extension|protocol|enum)\\s+(?!(func\\s+|var\\s+|let\\s+))([A-Za-z_][A-Za-z0-9_]*)"
+    
     var fileReader: FileReader
     var configuration: NadeefConfiguration
     
@@ -73,8 +75,7 @@ class SwiftObjectCollector: ObjectCollector {
     private func codeBlockMetaData(from input: String, filePath: String, startingLine: Int) -> CodeBlockMetadata? {
         var blockMetaData: CodeBlockMetadata?
         do {
-            let objectRegex = "\\b(?:class|actor|struct|extension|protocol|enum)\\s+(?!(func\\s+|var\\s+|let\\s+))([A-Za-z_][A-Za-z0-9_]*)"
-            let regex = try NSRegularExpression(pattern: objectRegex, options: [])
+            let regex = try NSRegularExpression(pattern: Self.typeDeclarationPattern, options: [])
             let nsInput = input as NSString
             regex.enumerateMatches(in: input, options: [], range: NSRange(location: 0, length: nsInput.length)) { (match, _, _) in
                 guard let match = match, match.numberOfRanges > 1, let blockType = nsInput.substring(with: match.range(at: 0)).components(separatedBy: .whitespaces).first else { return }

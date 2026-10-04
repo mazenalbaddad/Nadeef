@@ -2,6 +2,8 @@ import Foundation
 
 class SwiftGlobalLineCollector: ObjectCollector {
 
+    private static let typeDeclarationRegex = try! NSRegularExpression(pattern: SwiftObjectCollector.typeDeclarationPattern)
+
     var fileReader: FileReader
 
     init(fileReader: FileReader) {
@@ -26,18 +28,35 @@ class SwiftGlobalLineCollector: ObjectCollector {
         return globalObject.codeBlocks.isEmpty ? [] : [globalObject]
     }
 
+    /// Top-level lines outside type declarations, including the bodies of free functions,
+    /// global closures and computed globals, so the types they use count as referenced.
     private func collectGlobalLines(from lines: [SourceLine]) -> [SourceLine] {
         var globalLines: [SourceLine] = []
         var depth = 0
+        var insideType = false
+        var typeBodyOpened = false
         for sourceLine in lines {
             let braces = countBraces(in: sourceLine.text)
-            if depth == 0 && braces.open == 0 && braces.close == 0 {
+            if depth == 0 && !insideType && declaresType(sourceLine.text) {
+                insideType = true
+                typeBodyOpened = false
+            }
+            if !insideType {
                 globalLines.append(sourceLine)
-            } else {
-                depth += braces.open - braces.close
+            }
+            depth = max(0, depth + braces.open - braces.close)
+            if insideType {
+                typeBodyOpened = typeBodyOpened || braces.open > 0
+                if typeBodyOpened && depth == 0 {
+                    insideType = false
+                }
             }
         }
         return globalLines
+    }
+
+    private func declaresType(_ line: String) -> Bool {
+        Self.typeDeclarationRegex.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)) != nil
     }
 
     private func countBraces(in line: String) -> (open: Int, close: Int) {

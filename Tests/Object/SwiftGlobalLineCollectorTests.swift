@@ -68,6 +68,64 @@ struct SwiftGlobalLineCollectorTests {
         #expect(lines == ["let afterType = 1"])
     }
     
+    @Test func collectsFreeFunctionBodies() throws {
+        let (collector, files) = makeCollector(contents: [
+            "F.swift": [
+                "func payload(_ model: Encodable) -> Data? {",
+                "    try? JSONEncoder().encode(EncodableBox(model))",
+                "}",
+                "struct EncodableBox: Encodable {",
+                "    let value: Encodable",
+                "}"
+            ]
+        ])
+        let objects = try collector.collectObjects(from: files)
+        let lines = objects.first?.codeBlocks.first?.lines ?? []
+        #expect(lines == [
+            "func payload(_ model: Encodable) -> Data? {",
+            "    try? JSONEncoder().encode(EncodableBox(model))",
+            "}"
+        ])
+    }
+
+    @Test func collectsSingleLineGlobalClosures() throws {
+        let (collector, files) = makeCollector(contents: [
+            "F.swift": ["let make = { Factory() }"]
+        ])
+        let objects = try collector.collectObjects(from: files)
+        let lines = objects.first?.codeBlocks.first?.lines ?? []
+        #expect(lines == ["let make = { Factory() }"])
+    }
+
+    @Test func skipsTypeWithMultiLineHeader() throws {
+        let (collector, files) = makeCollector(contents: [
+            "F.swift": [
+                "struct A:",
+                "    Equatable,",
+                "    Hashable {",
+                "    let x = 1",
+                "}",
+                "let afterType = 1"
+            ]
+        ])
+        let objects = try collector.collectObjects(from: files)
+        let lines = objects.first?.codeBlocks.first?.lines ?? []
+        #expect(lines == ["let afterType = 1"])
+    }
+
+    @Test func skipsSingleLineTypesAndExtensions() throws {
+        let (collector, files) = makeCollector(contents: [
+            "F.swift": [
+                "struct Empty {}",
+                "extension Empty { func f() {} }",
+                "let afterTypes = 1"
+            ]
+        ])
+        let objects = try collector.collectObjects(from: files)
+        let lines = objects.first?.codeBlocks.first?.lines ?? []
+        #expect(lines == ["let afterTypes = 1"])
+    }
+
     @Test func systemObjectWrapsGlobalLines() throws {
         let (collector, files) = makeCollector(contents: [
             "F.swift": ["let x = 1"]
